@@ -5,9 +5,12 @@ import os.cmdline as cmd
 import term
 
 fn check_inst(util string) bool{
-    exec_res:= exec("${util} --version") or {
+    exec_res:= execute_or_exit("${util} --version")
+
+     if exec_res.exit_code != 0 {
        println("${util} is not installed.")
-       println(err)
+       println("Code: ${exec_res.exit_code}")
+       println("Output: ${exec_res.output}")
        return false
     }
 
@@ -32,7 +35,12 @@ fn check_dir(dir string, cur_dir string){
            exit(1)
         }else{
           println("git clone  https://github.com/Yarila682/${dir}")
-          res:= exec("git clone https://github.com/Yarila682/${dir}") or {return }
+          res:= execute("git clone https://github.com/Yarila682/${dir}") 
+           if res.exit_code != 0 {
+                println("Code: ${res.exit_code}")
+                println("Output: ${res.output}")
+                return
+            }  
           println(res.output)
         }
     }
@@ -51,7 +59,14 @@ fn check_npm(dir string,cwd string){
            exit(1)
         }else{
           println("npm install")
-          res:= exec("npm install") or {return}
+          res:= execute("npm install")
+
+          if res.exit_code != 0 {
+                println("Code: ${res.exit_code}")
+                println("Output: ${res.output}")
+                return
+            }    
+
           println(res.output)
         }
    }
@@ -59,7 +74,7 @@ fn check_npm(dir string,cwd string){
 
 fn run_build(dir string,cwd string, cmd string){
      chdir("${cwd}/${dir}")
-     res:= exec("npm run ${cmd}") or {exit(1)}
+     res:= execute_or_exit("npm run ${cmd}")
      println(res.output)
 }
 
@@ -209,6 +224,15 @@ for option in options{
                    //exit(1)
                   }
 
+//           rmdir_all("${cwd}/robboscratch3_gui/node_modules/scratch-vm/") or {
+//                     println(term.fail_message("(vm): Error: ${err}"))
+//                     //exit(1)
+//                    }
+
+//           mkdir("${cwd}/robboscratch3_gui/node_modules/scratch-vm") or {
+//                    println(term.fail_message("(vm) Error: ${err}"))
+//                    exit(1)
+//                  }
 
            filtered_files:= [".git","node_modules","test","playground"]
            cp_with_filter("${cwd}/robboscratch3_vm","${cwd}/robboscratch3_gui/node_modules/scratch-vm",filtered_files)
@@ -258,46 +282,71 @@ for option in options{
 
            chdir("${cwd}/robboscratch3_gui/build")
 
+//            mut f:= open_file("${cwd}/robboscratch3_gui/build/lib.min.js","e")  or {
+//                  println(term.fail_message("(gui): Error: ${err}"))
+//                  exit(1)
+//            }
+
+//             mut f:= open_append("${cwd}/robboscratch3_gui/build/lib.min.js")  or {
+//                  println(term.fail_message("(gui): Error: ${err}"))
+//                  exit(1)
+//            }
+
+//            str:= 'const _serialport = require("serialport");'
+
+//             f.seek(50)
+//             f.writeln(str)
+
+
+//            mut bytes_written:= f.write_bytes_at(&str, int(sizeof(str)), 1)
+
+//            println("bytes written: ${bytes_written}")
 
          mut str:= '1 s/^/const _serialport = require("serialport");/;'
 
-         mut res:= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
-                   exit(1)
+         mut res:= execute("sed -i -e '${str}' lib.min.js")  
+                   if res.exit_code != 0 {
+                    println(term.fail_message("(gui): Error: ${res.output}"))
+                    exit(1)
                   }
          println(res.output)
 
         str = '1 s/^/const node_fs = require("fs");/;'
-        res= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
+        res= execute("sed -i -e '${str}' lib.min.js")  
+             if res.exit_code != 0 {
+                   println(term.fail_message("(gui): Error: ${res.output}"))
                    exit(1)
-                  }
+              }
        println(res.output)
 
        str = '1 s/^/const node_process = require("process");/;'
-       res= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
+       res= execute("sed -i -e '${str}' lib.min.js")  
+                 if res.exit_code != 0 {
+                   println(term.fail_message("(gui): Error: ${res.output}"))
                    exit(1)
                   }
        println(res.output)
 
        str = '1 s/^/const node_os = require("os");/;'
-       res= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
+       res= execute("sed -i -e '${str}' lib.min.js")  
+                  if res.exit_code != 0 {  
+                   println(term.fail_message("(gui): Error: ${res.output}"))
                    exit(1)
                   }
        println(res.output)
 
        str = '1 s/^/const getos = require("getos");/;'
-       res= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
+       res= execute("sed -i -e '${str}' lib.min.js")  
+                if res.exit_code != 0 {
+                   println(term.fail_message("(gui): Error: ${res.output}"))
                    exit(1)
                   }
        println(res.output)
 
        str = '1 s/^/const clipboardy = require("clipboardy");/;'
-       res= exec("sed -i -e '${str}' lib.min.js")  or {
-                   println(term.fail_message("(gui): Error: ${err}"))
+       res= execute("sed -i -e '${str}' lib.min.js")  
+                if res.exit_code != 0 {
+                   println(term.fail_message("(gui): Error: ${res.output}"))
                    exit(1)
                   }
        println(res.output)
@@ -314,7 +363,10 @@ for option in options{
                  }
 
      //filtered_files:= [".git","node_modules"]
-     cp_all("${cwd}/robboscratch3_gui/build","${cwd}/nwjs_binary/package.nw/build",true)
+     cp_all("${cwd}/robboscratch3_gui/build","${cwd}/nwjs_binary/package.nw/build",true) or {
+                   println(term.fail_message("(gui) Error: ${err}"))
+                 
+                 }
 
 
       }
